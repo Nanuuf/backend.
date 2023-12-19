@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "name": "Nahir",
+        "photo": "imagen1.jpg",
+        "email": "nahir@mail.com"
+    },
+    {
+        "id": 2,
+        "name": "Tommy",
+        "photo": "imagen2.jpg",
+        "email": "tommy@mail.com"
+    },
+    {
+        "id": 3,
+        "name": "Koda",
+        "photo": "imagen3.jpg",
+        "email": "koda@mail.com"
+    },
+        {
+        "id": 4,
+        "name": "Joel",
+        "photo": "img4.jpg",
+        "email": "joel@mail.com"
+    },
+    {
+        "id": 5,
+        "name": "Rocio",
+        "photo": "img5.jpg",
+        "email": "rocio@mail.com"
+    },
+    {
+        "id": 6,
+        "name": "Patricia",
+        "photo": "img6.jpg",
+        "email": "patricia@mail.com"
+    }
+]

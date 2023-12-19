@@ -1,0 +1,47 @@
+[
+    {
+        "id": 1,
+        "title": "Sahumo",
+        "descr": "sahumo rosa",
+        "photo": "imagenS1.jpg",
+        "price": 100,
+        "code": 1234,
+        "stock": 10
+    },
+    {
+        "id": 2,
+        "title": "Sahumerio",
+        "descr": "sahumerio ",
+        "photo": "imagenS2.jpg",
+        "price": 100,
+        "code": 5678,
+        "stock": 10
+    },
+    {
+        "id": 3,
+        "title": "Spray",
+        "descr": "spray",
+        "photo": "imagenS3.jpg",
+        "price": 100,
+        "code": 9101,
+        "stock": 10
+    },
+    {
+        "id": 4,
+        "title": "Sahumerio2",
+        "descr": "sahumerio",
+        "photo": "imagenS4.jpg",
+        "price": 100,
+        "code": 1112,
+        "stock": 10
+    },
+    {
+        "id": 5,
+        "title": "Sahumo2",
+        "descr": "sahumo lavanda",
+        "photo": "imagenS5.jpg",
+        "price": 100,
+        "code": 1314,
+        "stock": 10
+    }
+]
