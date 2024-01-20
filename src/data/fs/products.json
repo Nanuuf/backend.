@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "title": "Sahumerio",
+    "photo": "",
+    "price": 80,
+    "stock": 50
+  },
+  {
+    "id": 2,
+    "title": "Spray",
+    "photo": "",
+    "price": 50,
+    "stock": 30
+  },
+  {
+    "id": 3,
+    "title": "Sahumo lavanda ",
+    "photo": "",
+    "price": 15,
+    "stock": 20
+  },
+  {
+    "id": 4,
+    "title": "Spray rosa",
+    "photo": "",
+    "price": 1500,
+    "stock": 20
+  },
+  {
+    "id": 5,
+    "title": "Sahumerio canela",
+    "photo": "",
+    "price": 300,
+    "stock": 20
+  },
+  {
+    "id": 6,
+    "title": "Sahumo romero",
+    "photo": "",
+    "price": 150,
+    "stock": 10
+  },
+  {
+    "id": "9d862ac8a9c9012a19337cd0",
+    "title": "Spray energia",
+    "photo": "",
+    "price": 30,
+    "stock": 3
+  },
+  {
+    "id": "afea1a5494843bd7c7f5b504",
+    "title": "Sahumo rosas",
+    "photo": "",
+    "price": 30,
+    "stock": 20
+  },
+  {
+    "id": "7e553ae305645f16569bbd16",
+    "title": "Spray 1",
+    "photo": "",
+    "price": 30,
+    "stock": 20
+  },
+  {
+    "id": "6b7aeddf478be86079dcfed2",
+    "title": "Spray 2",
+    "photo": "",
+    "price": 1000,
+    "stock": 10
+  }
+]

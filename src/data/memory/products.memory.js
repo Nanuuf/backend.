@@ -1,109 +1,92 @@
+import fs from "fs";
 import crypto from "crypto";
 
-class ProductManager {
-  static #products = [];
-  constructor() {
+class ProductsManager {
+  #products = [];
+  init() {
+    try {
+      const exists = fs.existsSync(this.path);
+      if (!exists) {
+        const data = JSON.stringify([], null, 2);
+        fs.writeFileSync(this.path, data);
+      } else {
+        this.#products = JSON.parse(fs.readFileSync(this.path, "utf-8"));
+      }
+    } catch (error) {
+      return error.message;
+    }
+  }
+
+  constructor(path) {
+    this.path = path;
+    this.#products = [];
+    this.init();
+  }
+
+  update(id, newData) {
+    try {
+      const index = this.#products.findIndex((product) => product.id === id);
+
+      if (index === -1) {
+        throw new Error("Product not found");
+      }
+
+      const updatedProduct = { ...this.#products[index], ...newData };
+      this.#products[index] = updatedProduct;
+
+      return updatedProduct;
+    } catch (error) {
+      return error.message;
+    }
   }
 
   create(data) {
     try {
-      const newProduct = {
-        id: crypto.randomBytes(12).toString("hex"),
+      if (!data.title || !data.photo || !data.price || !data.stock) {
+        throw new Error("Please, insert title, photo, price, stock");
+      }
+      const product = {
+        id:
+          this.#products.length === 0
+            ? 1
+            : this.#products[this.#products.length - 1].id + 1,
         title: data.title,
         photo: data.photo,
         price: data.price,
         stock: data.stock,
       };
-
-      if (data.title && data.photo && data.price && data.stock) {
-        ProductManager.#products.push(newProduct);
-        return newProduct;
-      } else {
-        throw new Error(
-          "Los campos title, photo, price, stock son obligatorias"
-        );
-      }
+      this.#products.push(product);
+      return product.id;
     } catch (error) {
       return error.message;
     }
   }
 
-  read() {
+  readProducts() {
     try {
-      if(ProductManager.#products.length === 0){
-        throw new Error("No se encontro ningun producto")
-      }else{
-        return ProductManager.#products;
+      if (this.#products.length === 0) {
+        throw new Error("Not found products!");
+      } else {
+        return this.#products;
       }
     } catch (error) {
       return error.message;
     }
-    
   }
 
   readOne(id) {
     try {
-      const product = ProductManager.#products.find(
-        (product) => product.id === id
-      );
-
-      if(product){
-        return product
-      }else{
-        throw new Error("No encontrado")
-      }
-    } catch (error) {
-      return error.message
-    }
-    
-  }
-
-  destroy(id){
-    try {
-      const product = ProductManager.#products.find(
-        (product) => product.id === id
-      );
-      if (!product) {
-        throw new Error("No se encontro producto!");
+      let one = this.#products.find((each) => each.id === Number(id));
+      if (one) {
+        return one;
       } else {
-        const index = ProductManager.#products.indexOf(product);
-        ProductManager.#products.splice(index, 1);
-        
-        return "Producto eliminado";
+        throw new Error("Not found product with id=" + id);
       }
-    } catch (error) {
-      return error.message;
-    }
-  }
-
-  update(id,data){
-    try {
-     const one= this.readOne(id);
-     
-     if(!one){
-       throw new Error("No se encontro producto!")
-      }else{
-
-        const index = ProductManager.#products.indexOf(one);
-          one.title= data.title || one.title,
-          one.photo= data.photo || one.photo,
-          one.price= data.price || one.price,
-          one.stock= data.stock || one.stock,
-
-          ProductManager.#products[index] = one;
-          
-
-        return "producto actualizada"
-      }
-
     } catch (error) {
       return error.message;
     }
   }
 }
 
-const Manager = new ProductManager();
-
-console.log(Manager.create({ photo: "https://picsum.photos/200", price: 100, stock: 10 })); 
-
-console.log(Manager.read());
+const products = new ProductsManager("./src/data/memory/products.json");
+export default products;

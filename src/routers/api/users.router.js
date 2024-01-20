@@ -1,108 +1,65 @@
-import { Router } from "express"
-import ManagerUser  from "../../data/fs/user.fs.js"
-import propsUser from "../../middlewares/propsUser.js";
-const usersRouter = Router()
+import { Router } from "express";
+import users from "../../data/fs/users.fs.js";
+import propsUsers from "../../middlewares/propsUsers.mid.js";
 
-usersRouter.post("/", propsUser, async (req, res, next) => {
-    try {
-      const data = req.body;
-      const response = await ManagerUser.create(data);
-      
-        return res.json({
-          statusCode: 201,
-          response,
-        });
-      
-    } catch (error) {
-        return next(error);
-    }
-  });
+const usersRouter = Router();
 
-  usersRouter.get ('/', async (req,res, next)=>{
+usersRouter.post("/", propsUsers, async (req, res, next) => {
     try {
-        const users = await ManagerUser.read()
-        if(users){
-            return res.json({
-                statusCode: 200,
-                response: users
-            })
-        }else{
-            return res.json({
-                statusCode: 404,
-                message: "Not found!"
-            })
-        }
-        
-    } catch (error) {
-        return next(error);
-    }
-    
-})
-
-usersRouter.get ('/:uid', async (req,res, next)=>{
-    try {
-        const {uid} = req.params
-        const user =await ManagerUser.readOne(uid)
-        if(user){
-            return res.json({
-                statusCode: 200,
-                response: user
-            })
-        }else{
-            return res.json({
-                statusCode: 404,
-                message: "Not found!"
-            })
-        }
-        
-    } catch (error) {
-        return next(error);
-    }
-    
-})
-
-usersRouter.put('/:uid', async (req,res, next)=>{
-    try {
-        const {uid} = req.params
         const data = req.body;
-        const user = await ManagerUser.update(uid,data)
-        if(user){
-            return res.json({
-                statusCode: 200,
-                response: user
-            })
-        }else{
-            return res.json({
-                statusCode: 404,
-                message: "Not found!"
-            })
+        const response = await users.createUser(data);
+        if (response === "name, photo & email are required") {
+        return res.json({
+            statusCode: 400,
+            message: response,
+        });
+        } else {
+        return res.json({
+            statusCode: 201,
+            response,
+        });
         }
-        
     } catch (error) {
         return next(error);
     }
-})
+    });
 
-usersRouter.delete('/:uid', async (req,res, next)=>{
+    usersRouter.get("/", async (req, res, next) => {
     try {
-        const {uid} = req.params
-        const user = await ManagerUser.destroy(uid)
-        if(user){
-            return res.json({
-                statusCode: 200,
-                response: user
-            })
-        }else{
-            return res.json({
-                statusCode: 404,
-                message: "Not found!"
-            })
+        const all = await users.readUsers();
+        if (Array.isArray(all)) {
+        return res.json({
+            statusCode: 200,
+            response: all,
+        });
+        } else {
+        return res.json({
+            statusCode: 404,
+            message: all,
+        });
         }
-        
     } catch (error) {
         return next(error);
     }
-})
+    });
 
+    usersRouter.get("/:uid", async (req, res, next) => {
+    try {
+        const { uid } = req.params;
+        const one = await users.readUserById(uid);
+        if (!one) {
+        return res.status(404).json({
+            statusCode: 404,
+            message: `User with ID ${uid} not found`,
+        });
+        }
+        return res.status(200).json({
+        statusCode: 200,
+        response: [one],
+        });
+    } catch (error) {
+        return next(error);
+    }
+});
 
-export default usersRouter
+export default usersRouter;

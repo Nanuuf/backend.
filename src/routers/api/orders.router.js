@@ -1,109 +1,94 @@
-import { Router } from "express"
-import ManagerOrders  from "../../data/fs/orders.fs.js"
-import propsOrder from "../../middlewares/propsOrders.js";
+import { Router } from "express";
+import propsOrders from "../../middlewares/propsOrders.mid.js";
+import order from "../../data/fs/orders.fs.js";
+import OrderManager from "../../data/memory/orders.memory.js";
+const ordersRouter = Router();
 
-const ordersRouter = Router()
-
-ordersRouter.post("/", propsOrder, async (req, res, next) => {
+ordersRouter.post("/", propsOrders, async (req, res, next) => {
     try {
-      const data = req.body;
-      const response = await ManagerOrders.create(data);
-      
+        const data = req.body;
+        const response = await order.createOrder(data);
+
         return res.json({
-          statusCode: 201,
-          response,
+        statusCode: 201,
+        response,
         });
-      
     } catch (error) {
         return next(error);
     }
-  });
-  
-
-ordersRouter.get ('/', async (req,res, next)=>{
+    });
+    ordersRouter.get("/", async (req, res, next) => {
     try {
-        const orders = await ManagerOrders.read()
-        if(orders){
-            return res.json({
-                statusCode: 200,
-                response: orders
-            })
-        }else{
-            return res.json({
-                statusCode: 404,
-                message: "Not found!"
-            })
-        }
-        
+        const allOrders = order.read();
+        return res.json({
+        statusCode: 200,
+        response: allOrders,
+        });
     } catch (error) {
         return next(error);
-        
     }
-    
-})
+    });
 
-ordersRouter.get ('/:uid', async (req,res, next)=>{
+    ordersRouter.get("/:oid", async (req, res, next) => {
     try {
-        const {uid} = req.params
-        const order =await ManagerOrders.readOne(uid)
-        if(order){
-            return res.json({
-                statusCode: 200,
-                response: order
-            })
-        }else{
-            return res.json({
-                statusCode: 404,
-                message: "Not found!"
-            })
-        }
-        
-    } catch (error) {
-        return next(error);
-    }
-    
-})
+        const { oid } = req.params;
+        const userOrder = await order.readOne(oid);
 
-ordersRouter.delete('/:oid', async (req,res, next)=>{
+        if (userOrder) {
+        return res.json({
+            statusCode: 200,
+            response: userOrder,
+        });
+        } else {
+        return res.json({
+            statusCode: 404,
+            message: "Order not found",
+        });
+        }
+    } catch (error) {
+        return res.json({
+        statusCode: 404,
+        message: error.message,
+        });
+    }
+    });
+    ordersRouter.delete("/:oid", async (req, res, next) => {
     try {
-        const {oid} = req.params
-        const order = await ManagerOrders.destroy(oid)
-        if(order){
-            return res.json({
-                statusCode: 200,
-                response: order
-            })
-        }else{
-            return res.json({
-                statusCode: 404,
-                message: "Not found!"
-            })
+        const { oid } = req.params;
+        const response = await OrderManager.destroy(oid);
+
+        if (response === "Order not found") {
+        return res.json({
+            statusCode: 404,
+            message: response,
+        });
+        } else {
+        return res.json({
+            statusCode: 200,
+            response,
+        });
         }
-        
     } catch (error) {
         return next(error);
     }
-})
-
-ordersRouter.put('/:oid/:quantity/:state', async (req,res, next)=>{
+    });
+    ordersRouter.put("/:oid", async (req, res, next) => {
     try {
-        const {oid, quantity, state} = req.params
-        const order = await ManagerOrders.update(oid,quantity,state)
-        if(order){
-            return res.json({
-                statusCode: 200,
-                response: order
-            })
-        }else{
-            return res.json({
-                statusCode: 404,
-                message: "Not found!"
-            })
-        }
-        
-    } catch (error) {
-        return next(error);
-    }
-})
+        const { oid } = req.params;
+        const { quantity, state } = req.body;
 
-export default ordersRouter
+        const updatedOrder = await order.update(oid, quantity, state);
+
+        return res.json({
+        statusCode: 200,
+        response: updatedOrder,
+        });
+    } catch (error) {
+        return res.json({
+        statusCode: 404,
+        message: error.message,
+        });
+    }
+});
+
+export default ordersRouter;

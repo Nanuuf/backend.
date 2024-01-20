@@ -1,96 +1,74 @@
-
-import crypto from "crypto";
-
-class OrdersManager {
+class OrderManager {
   static #orders = [];
+  static #nextId = 1;
 
-  constructor() {
-    
-  }
-
-  create(data) {
+  static createOrder(data) {
     try {
-      if (!data.pid || !data.uid || !data.quantity || !data.state) {
-        throw new Error(
-          "Los campos pid, uid, quantity, state son obligatorias"
-        );
+      if (!data.uid || !data.pid || !data.quantity) {
+        throw new Error("uid, pid, and quantity are required");
       }
-      const newOrder = {
-        id: crypto.randomBytes(12).toString("hex"),
-        pid: data.pid,
+
+      const order = {
+        id: OrderManager.#nextId++,
         uid: data.uid,
+        pid: data.pid,
         quantity: data.quantity,
-        state: data.state,
+        state: "reserved",
       };
 
-      OrdersManager.#orders.push(newOrder);
-
-      return "orden creado";
+      OrderManager.#orders.push(order);
+      return order.id;
     } catch (error) {
-      return error.message;
+      throw new Error(`Failed to create order: ${error.message}`);
     }
   }
 
-  read() {
-    try {
-      if (OrdersManager.#orders.length === 0) {
-        throw new Error("No se encontraron ordenes de compra!");
-      } else {
-        return OrdersManager.#orders;
-      }
-    } catch (error) {
-      return error.message;
-    }
+  static read() {
+    return OrderManager.#orders;
   }
 
-  readOne(uid) {
+  static readOne(uid) {
+    return OrderManager.#orders.filter((order) => order.uid === uid);
+  }
+
+  static update(oid, quantity, state) {
     try {
-      const order = OrdersManager.#orders.filter((orders) => orders.uid === uid);
+      console.log("Received order ID:", oid);
+      const order = OrderManager.#orders.find((order) => order.id === oid);
       if (!order) {
-        throw new Error("No se encontro el orden de usuario!");
-      } else {
-        return order;
+        throw new Error("Order not found");
       }
+
+      if (quantity !== undefined) {
+        order.quantity = quantity;
+      }
+
+      if (state !== undefined) {
+        order.state = state;
+      }
+      console.log("Updated order:", order);
+      return order;
     } catch (error) {
-      return error.message;
+      throw new Error(`Failed to update order: ${error.message}`);
     }
   }
 
-  destroy(oid) {
+  static destroy(oid) {
     try {
-      const order = OrdersManager.#orders.find((order) => order.id === oid);
-      if (!order) {
-        throw new Error("No se encontro orden!");
-      } else {
-        const index = OrdersManager.#orders.indexOf(order);
-        OrdersManager.#orders.splice(index, 1);
-        
-        return "Orden eliminado";
+      console.log("Attempting to destroy order with ID:", oid);
+      const index = OrderManager.#orders.findIndex(
+        (order) => order.id === parseInt(oid)
+      );
+      if (index === -1) {
+        throw new Error("Order not found");
       }
-    } catch (error) {
-      return error.message;
-    }
-  }
 
-  update(oid,quantity,state) {
-    try {
-      const one = OrdersManager.#orders.find((order) => order.id === oid)
-      if(!one){
-        throw new Error("No se encontro orden!")
-      }else{
-        const index = OrdersManager.#orders.indexOf(one);
-        one.quantity = quantity;
-        one.state = state
-        OrdersManager.#orders[index] = one
-        return "Orden actualizada"
-      }
-      
-
+      OrderManager.#orders.splice(index, 1);
+      return oid;
     } catch (error) {
-      return error.message;
+      throw new Error(`Failed to destroy order: ${error.message}`);
     }
   }
 }
 
-const ManagerOrders = new OrdersManager();
-
+export default OrderManager;

@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "name": "Nahir",
+    "photo": "imagen1.jpg",
+    "email": "nahir@gmail.com"
+  },
+  {
+    "id": 2,
+    "name": "Patricia",
+    "photo": "imagen2.jpg",
+    "email": "patri@gmail.com"
+  },
+  {
+    "id": 3,
+    "name": "joel",
+    "photo": "imagen_prueba.jpg",
+    "email": "joel@gmail.com"
+  },
+  {
+    "id": 4,
+    "name": "Koda",
+    "photo": "foto_prueba.jpg",
+    "email": "koda@gmail.com"
+  },
+  {
+    "id": "208c2c6537fa09a2e35c6142",
+    "name": "tommy",
+    "photo": "imagen_prueba.jpg",
+    "email": "tom@gmail.com"
+  },
+  {
+    "id": "7d2b532239f1cabade67c7fe",
+    "name": "rocio",
+    "photo": "imagen_prueba.jpg",
+    "email": "ro@gmail.com"
+  },
+  {
+    "id": "6490dff1b668df9b42683a64",
+    "name": "sofia",
+    "photo": "foto_prueba.jpg",
+    "email": "sofia@gmail.com"
+  }
+]
