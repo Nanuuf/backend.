@@ -1,113 +1,125 @@
 import fs from "fs";
-import crypto from "crypto";
 
-class OrdersManager {
-  static #orders = [];
+class OrderManager {
+  #orders = [];
+  #path;
 
-  constructor() {
-    this.path = "./src/data/fs/files/orders.json";
-    this.conf = "utf-8";
-    this.init();
-  }
-
-  init() {
-    const exist = fs.existsSync(this.path);
-    if (exist) {
-      OrdersManager.#orders = JSON.parse(fs.readFileSync(this.path, this.conf));
-    } else {
-      fs.writeFileSync(this.path, JSON.stringify([], null, 2));
+  async init() {
+    try {
+      const exists = fs.existsSync(this.#path);
+      if (!exists) {
+        const data = JSON.stringify([], null, 2);
+        fs.writeFileSync(this.#path, data);
+      } else {
+        this.#orders = JSON.parse(fs.readFileSync(this.#path, "utf-8"));
+      }
+    } catch (error) {
+      throw new Error(`Failed to initialize OrderManager: ${error.message}`);
     }
   }
 
-  create(data) {
+  constructor(path) {
+    this.#path = path;
+    this.#orders = [];
+    this.init().then(() => {
+      console.log("Initialization complete.");
+    });
+  }
+
+  async createOrder(data) {
     try {
-      
-      const newOrder = {
-        id: crypto.randomBytes(12).toString("hex"),
-        pid: data.pid,
-        uid: data.uid,
-        quantity: data.quantity,
-        state: data.state,
+      const { uid, pid, quantity } = data;
+
+      if (!uid || !pid || !quantity) {
+        throw new Error("uid, pid, state and quantity are required");
+      }
+
+      const nextId =
+        this.#orders.length > 0
+          ? Math.max(...this.#orders.map((order) => order.id)) + 1
+          : 1;
+
+      const order = {
+        id: nextId,
+        uid: uid,
+        pid: pid,
+        quantity: quantity,
+        state: "reserved",
       };
 
-      OrdersManager.#orders.push(newOrder);
-
-      fs.writeFileSync(
-        this.path,
-        JSON.stringify(OrdersManager.#orders, null, 2)
-      );
-      return "orden creado";
+      this.#orders.push(order);
+      const jsonData = JSON.stringify(this.#orders, null, 2);
+      await fs.promises.writeFile(this.#path, jsonData);
+      return order.id;
     } catch (error) {
-      return error.message;
+      throw new Error(`Failed to create order: ${error.message}`);
     }
   }
 
   read() {
-    try {
-      if (OrdersManager.#orders.length === 0) {
-        throw new Error("No se encontraron ordenes de compra!");
-      } else {
-        return OrdersManager.#orders;
-      }
-    } catch (error) {
-      return error.message;
+    return this.#orders;
+  }
+
+  readOne(oid) {
+    console.log("Searching for order with ID:", oid);
+    const foundOrders = this.#orders.find(
+      (order) => order.id === parseInt(oid)
+    );
+
+    if (foundOrders) {
+      return foundOrders;
+    } else {
+      console.log("Order not found");
+      throw new Error("Order not found");
     }
   }
 
-  readOne(uid) {
+  async update(oid, quantity, state) {
     try {
-      const order = OrdersManager.#orders.filter((orders) => orders.uid === uid);
-      if (!order) {
-        throw new Error("No se encontro orden del usuario!");
-      } else {
-        return order;
+      console.log("Received order ID:", oid);
+
+      const orderIndex = this.#orders.findIndex(
+        (order) => order.id === parseInt(oid)
+      );
+      if (orderIndex === -1) {
+        throw new Error("Order not found");
       }
+
+      if (quantity !== undefined) {
+        this.#orders[orderIndex].quantity = quantity;
+      }
+
+      if (state !== undefined) {
+        this.#orders[orderIndex].state = state;
+      }
+
+      const jsonData = JSON.stringify(this.#orders, null, 2);
+      await fs.promises.writeFile(this.#path, jsonData);
+      return this.#orders[orderIndex];
     } catch (error) {
-      return error.message;
+      throw new Error(`Failed to update order: ${error.message}`);
     }
   }
 
-  destroy(oid) {
+  async removeOrder(oid) {
     try {
-      const order = OrdersManager.#orders.find((order) => order.id === oid);
-      if (!order) {
-        throw new Error("No se encontro orden!");
-      } else {
-        const index = OrdersManager.#orders.indexOf(order);
-        OrdersManager.#orders.splice(index, 1);
-        fs.writeFileSync(
-          this.path,
-          JSON.stringify(OrdersManager.#orders, null, 2)
-        );
-        return "Orden eliminado";
+      const orderIndex = this.#orders.findIndex(
+        (order) => order.id === parseInt(oid)
+      );
+      if (orderIndex === -1) {
+        throw new Error("Order not found");
       }
+
+      this.#orders.splice(orderIndex, 1);
+      const jsonData = JSON.stringify(this.#orders, null, 2);
+      await fs.promises.writeFile(this.#path, jsonData);
+      return oid;
     } catch (error) {
-      return error.message;
-    }
-  }
-
-  update(oid,quantity,state) {
-    try {
-      const one = OrdersManager.#orders.find((order) => order.id === oid)
-      if(!one){
-        throw new Error("No se encontro orden!")
-      }else{
-
-        one.quantity = quantity;
-        one.state = state
-        fs.writeFileSync(
-          this.path,
-          JSON.stringify(OrdersManager.#orders, null, 2)
-        );
-        return "Orden actualizada"
-      }
-      
-
-    } catch (error) {
-      return error.message;
+      throw new Error(`Failed to remove order: ${error.message}`);
     }
   }
 }
+const order = new OrderManager("./orders.json");
+await order.init();
 
-const ManagerOrders = new OrdersManager();
-export default ManagerOrders;
+export default order;
