@@ -1,13 +1,16 @@
+import mongoose from "mongoose";
 import { Router } from "express";
 import propsOrders from "../../middlewares/propsOrders.mid.js";
-import order from "../../data/fs/orders.fs.js";
-import OrderManager from "../../data/memory/orders.memory.js";
+//import order from "../../data/fs/orders.fs.js";
+import { orders } from "../../data/mongo/manager.mongo.js";
+//import OrderManager from "../../data/memory/orders.memory.js";
 const ordersRouter = Router();
 
 ordersRouter.post("/", propsOrders, async (req, res, next) => {
     try {
         const data = req.body;
-        const response = await order.createOrder(data);
+
+        const response = await orders.create(data);
 
         return res.json({
         statusCode: 201,
@@ -19,7 +22,11 @@ ordersRouter.post("/", propsOrders, async (req, res, next) => {
     });
     ordersRouter.get("/", async (req, res, next) => {
     try {
-        const allOrders = order.read();
+        let filter = {};
+        if (req.query.user_id) {
+        filter = { user_id: req.query.user_id };
+        }
+        const allOrders = await orders.read({ filter });
         return res.json({
         statusCode: 200,
         response: allOrders,
@@ -32,19 +39,12 @@ ordersRouter.post("/", propsOrders, async (req, res, next) => {
     ordersRouter.get("/:oid", async (req, res, next) => {
     try {
         const { oid } = req.params;
-        const userOrder = await order.readOne(oid);
+        const one = await orders.readOne(oid);
 
-        if (userOrder) {
         return res.json({
-            statusCode: 200,
-            response: userOrder,
+        statusCode: 200,
+        response: one,
         });
-        } else {
-        return res.json({
-            statusCode: 404,
-            message: "Order not found",
-        });
-        }
     } catch (error) {
         return res.json({
         statusCode: 404,
@@ -55,7 +55,7 @@ ordersRouter.post("/", propsOrders, async (req, res, next) => {
     ordersRouter.delete("/:oid", async (req, res, next) => {
     try {
         const { oid } = req.params;
-        const response = await OrderManager.destroy(oid);
+        const response = await orders.destroy(oid);
 
         if (response === "Order not found") {
         return res.json({
@@ -77,7 +77,7 @@ ordersRouter.post("/", propsOrders, async (req, res, next) => {
         const { oid } = req.params;
         const { quantity, state } = req.body;
 
-        const updatedOrder = await order.update(oid, quantity, state);
+        const updatedOrder = await orders.update(oid, quantity, state);
 
         return res.json({
         statusCode: 200,

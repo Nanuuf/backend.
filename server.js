@@ -16,9 +16,19 @@ import __dirname from "./utils.js";
 const app = express();
 const PORT = 8080;
 
+const ready = () => {
+    console.log("server ready on port" + PORT);
+    dbConnection();
+};
+
 // Crear servidor HTTP y WebSocket
 const httpServer = createServer(app);
 const io = new Server(httpServer);
+// Iniciar el servidor HTTP
+httpServer.listen(PORT, ready);
+//socketServer.on("connetion", socketUtils);
+
+
 
 // Configurar handlebars y directorio de vistas
 app.engine("handlebars", engine({ extname: ".handlebars" }));
@@ -84,7 +94,3 @@ io.on("connection", (socket) => {
     });
 });
 
-// Inicia el servidor HTTP
-httpServer.listen(PORT, () => {
-console.log(`Server ready on port ${PORT}`);
-    });

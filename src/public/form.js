@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         socket.emit("newProduct", newProduct);
 
-        // Limpiar el formulario
+        // Limpia el formulario
         document.getElementById("title").value = "";
         document.getElementById("photo").value = "";
         document.getElementById("price").value = "";

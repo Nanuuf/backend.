@@ -1,24 +1,21 @@
 import { Router } from "express";
-import users from "../../data/fs/users.fs.js";
+//import users from "../../data/fs/users.fs.js";
 import propsUsers from "../../middlewares/propsUsers.mid.js";
+import { users } from "../../data/mongo/manager.mongo.js";
+import User from "../../data/mongo/models/users.model.js";
 
 const usersRouter = Router();
+const manager = users;
 
 usersRouter.post("/", propsUsers, async (req, res, next) => {
     try {
         const data = req.body;
-        const response = await users.createUser(data);
-        if (response === "name, photo & email are required") {
-        return res.json({
-            statusCode: 400,
-            message: response,
+        const idUsuario = await users.create(data);
+
+        return res.status(201).json({
+        statusCode: 201,
+        response: { _id: idUsuario },
         });
-        } else {
-        return res.json({
-            statusCode: 201,
-            response,
-        });
-        }
     } catch (error) {
         return next(error);
     }
@@ -26,18 +23,21 @@ usersRouter.post("/", propsUsers, async (req, res, next) => {
 
     usersRouter.get("/", async (req, res, next) => {
     try {
-        const all = await users.readUsers();
-        if (Array.isArray(all)) {
+        const { filter, order } = req.query;
+
+        const parsedFilter = filter ? JSON.parse(filter) : {};
+
+        const readObj = {
+        filter: parsedFilter,
+        order: JSON.parse(order || "{}"),
+        };
+
+        const result = await users.read(readObj);
+
         return res.json({
-            statusCode: 200,
-            response: all,
+        statusCode: 200,
+        response: result,
         });
-        } else {
-        return res.json({
-            statusCode: 404,
-            message: all,
-        });
-        }
     } catch (error) {
         return next(error);
     }
@@ -46,7 +46,7 @@ usersRouter.post("/", propsUsers, async (req, res, next) => {
     usersRouter.get("/:uid", async (req, res, next) => {
     try {
         const { uid } = req.params;
-        const one = await users.readUserById(uid);
+        const one = await users.readOne(uid);
         if (!one) {
         return res.status(404).json({
             statusCode: 404,
@@ -56,6 +56,54 @@ usersRouter.post("/", propsUsers, async (req, res, next) => {
         return res.status(200).json({
         statusCode: 200,
         response: [one],
+        });
+    } catch (error) {
+        return next(error);
+    }
+    });
+
+    usersRouter.put("/:uid", async (req, res, next) => {
+    try {
+        const { uid } = req.params;
+        const dataToUpdate = req.body;
+        const updatedUser = await users.update(uid, dataToUpdate);
+
+        if (!updatedUser) {
+        const error = new Error("No se encontró el usuario");
+        error.statusCode = 404;
+        throw error;
+        }
+
+        return res.status(200).json({
+        statusCode: 200,
+        response: updatedUser,
+        });
+    } catch (error) {
+        return next(error);
+    }
+    });
+
+    usersRouter.delete("/:uid", async (req, res, next) => {
+    try {
+        const { uid } = req.params;
+        const deletedUser = await User.findByIdAndDelete(uid);
+
+        return res.status(200).json({
+        statusCode: 200,
+        response: deletedUser,
+        });
+    } catch (error) {
+        return next(error);
+    }
+    });
+    usersRouter.get("/by-email/:email", async (req, res, next) => {
+    try {
+        const { email } = req.params;
+        const user = await users.readByEmail(email);
+
+        return res.json({
+        statusCode: 200,
+        response: user,
         });
     } catch (error) {
         return next(error);
