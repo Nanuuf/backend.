@@ -6,7 +6,23 @@ const viewsRouter = Router();
 
 viewsRouter.get("/home", (req, res, next) => {
     try {
-        const mainProducts = ["Keyboard", "Mouse", "Notebook stand"];
+        const mainProducts = [
+        {
+            title: "Sahumo",
+            photo:
+            "",
+        },
+        {
+            title: "Spray",
+            photo:
+            "",
+        },
+        {
+            title: "Sahumerio",
+            photo:
+            "",
+        },
+        ];
         const date = new Date();
         return res.render("home", {
         products: mainProducts,
@@ -17,6 +33,7 @@ viewsRouter.get("/home", (req, res, next) => {
         next(error);
     }
 });
+
 viewsRouter.use("/real", productsRouter);
 viewsRouter.use("/users", usersRouter);
 

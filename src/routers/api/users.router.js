@@ -22,25 +22,32 @@ usersRouter.post("/", propsUsers, async (req, res, next) => {
     });
 
     usersRouter.get("/", async (req, res, next) => {
-    try {
-        const { filter, order } = req.query;
-
-        const parsedFilter = filter ? JSON.parse(filter) : {};
-
-        const readObj = {
-        filter: parsedFilter,
-        order: JSON.parse(order || "{}"),
-        };
-
-        const result = await users.read(readObj);
-
-        return res.json({
-        statusCode: 200,
-        response: result,
-        });
-    } catch (error) {
-        return next(error);
-    }
+        try {
+            const { filter, sortAndPaginate } = req.query;
+        
+            const parsedFilter = filter ? JSON.parse(filter) : {};
+            const parsedSortAndPaginate = sortAndPaginate
+                ? JSON.parse(sortAndPaginate)
+                : {};
+        
+            const readObj = {
+                filter: parsedFilter,
+                sortAndPaginate: {
+                    limit: parsedSortAndPaginate.limit || 10,
+                    page: parsedSortAndPaginate.page || 1,
+                    sort: parsedSortAndPaginate.sort || {},
+                },
+            };
+        
+            const result = await users.read(readObj);
+        
+            return res.json({
+                statusCode: 200,
+                response: result,
+            });
+        } catch (error) {
+            return next(error);
+        }
     });
 
     usersRouter.get("/:uid", async (req, res, next) => {
@@ -104,6 +111,20 @@ usersRouter.post("/", propsUsers, async (req, res, next) => {
         return res.json({
         statusCode: 200,
         response: user,
+        });
+    } catch (error) {
+        return next(error);
+    }
+});
+
+usersRouter.get("/report/:uid", async (req, res, next) => {
+    try {
+        const { uid } = req.params;
+        const reportData = await orders.report(uid);
+    
+        return res.status(200).json({
+            statusCode: 200,
+            response: reportData,
         });
     } catch (error) {
         return next(error);

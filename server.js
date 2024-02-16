@@ -11,6 +11,7 @@ import propsProducts from "./src/middlewares/propsProducts.mid.js";
 import propsUsers from "./src/middlewares/propsUsers.mid.js";
 import propsOrders from "./src/middlewares/propsOrders.mid.js";
 import __dirname from "./utils.js";
+import Product from "./src/data/mongo/models/products.model.js";
 
 // Crear servidor express
 const app = express();
@@ -18,8 +19,10 @@ const PORT = 8080;
 
 const ready = () => {
     console.log("server ready on port" + PORT);
-    dbConnection();
+    
 };
+
+dbConnection();
 
 // Crear servidor HTTP y WebSocket
 const httpServer = createServer(app);
@@ -79,18 +82,33 @@ app.use(propsOrders);
 io.on("connection", (socket) => {
     console.log(`Client ${socket.id} connected`);
     socket.emit("welcome", "Welcome to my App!");
-    socket.emit("products", products.readProducts());
-
-    socket.on("newProduct", async (data) => {
-        try {
-        console.log(data);
-        await products.createProduct(data);
-        const updatedProducts = products.readProducts();
-        console.log("Updated products:", updatedProducts);
-        socket.emit("products", updatedProducts);
-        } catch (error) {
-        console.log(error);
-        }
+    
+    // Emitir los productos desde la base de datos MongoDB al cliente
+    Product.find({})
+    .then((products) => {
+        socket.emit("products", products);
+    })
+    .catch((error) => {
+        console.error("Error fetching products:", error);
     });
+
+    // Escuchar evento de nuevo producto desde el cliente
+    socket.on("newProduct", async (data) => {
+    try {
+        // Crear el nuevo producto en la base de datos MongoDB
+        await Product.create(data);
+
+        // Emitir los productos actualizados al cliente
+        Product.find({}, (err, updatedProducts) => {
+        if (err) {
+            console.error("Error fetching updated products:", err);
+        } else {
+            socket.emit("products", updatedProducts);
+        }
+        });
+    } catch (error) {
+        console.error("Error creating product:", error);
+    }
+    })
 });
 
