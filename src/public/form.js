@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         
         socket.emit("newProduct", newProduct);
+        alert("¡Se ha agregado un nuevo producto!");
 
         // Limpia el formulario
         document.getElementById("title").value = "";

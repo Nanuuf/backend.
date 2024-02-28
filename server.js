@@ -1,8 +1,15 @@
+import "dotenv/config.js";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import morgan from "morgan";
 import { engine } from "express-handlebars";
+import cookieParser from "cookie-parser";
+import expressSession from "express-session";
+import sessionFileStore from "session-file-store";
+import passport from "passport";
+import MongoStore from "connect-mongo";
+import dbConnection from "./src/utils/db.js";
 import products from "./src/data/fs/products.fs.js";
 import router from "./src/routers/index.router.js";
 import errorHandler from "./src/middlewares/errorHandler.mid.js";
@@ -11,40 +18,51 @@ import propsProducts from "./src/middlewares/propsProducts.mid.js";
 import propsUsers from "./src/middlewares/propsUsers.mid.js";
 import propsOrders from "./src/middlewares/propsOrders.mid.js";
 import __dirname from "./utils.js";
-import Product from "./src/data/mongo/models/products.model.js";
 
-// Crear servidor express
+
 const app = express();
 const PORT = 8080;
-
 const ready = () => {
     console.log("server ready on port" + PORT);
-    
+    dbConnection();
 };
 
-dbConnection();
 
-// Crear servidor HTTP y WebSocket
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 // Iniciar el servidor HTTP
 httpServer.listen(PORT, ready);
-//socketServer.on("connetion", socketUtils);
 
 
-
-// Configurar handlebars y directorio de vistas
 app.engine("handlebars", engine({ extname: ".handlebars" }));
 app.set("view engine", "handlebars");
 app.set("views", __dirname + "/src/views");
 
-// Middleware para manejar variables locales
-app.use((req, res, next) => {
+
+app.use((req, res, next) => { // Middleware para manejar variables locales
     res.locals.isHome = req.path === "/home";
     next();
 });
 
+const FileStore = sessionFileStore(expressSession);
+
 // Middleware para parsear JSON y URL-encoded
+app.use(cookieParser(process.env.SECRET_KEY));
+
+//Mongo Store
+app.use(expressSession({
+    secret: process.env.SECRET_KEY,
+    resave: true,
+    saveUninitialized: true,
+    store: new MongoStore({
+        ttl: 7 * 24 * 60 * 60,
+        mongoUrl: process.env.DB_LINK
+    })
+}))
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -82,33 +100,17 @@ app.use(propsOrders);
 io.on("connection", (socket) => {
     console.log(`Client ${socket.id} connected`);
     socket.emit("welcome", "Welcome to my App!");
-    
-    // Emitir los productos desde la base de datos MongoDB al cliente
-    Product.find({})
-    .then((products) => {
-        socket.emit("products", products);
-    })
-    .catch((error) => {
-        console.error("Error fetching products:", error);
-    });
+    socket.emit("products", products.readProducts());
 
-    // Escuchar evento de nuevo producto desde el cliente
     socket.on("newProduct", async (data) => {
-    try {
-        // Crear el nuevo producto en la base de datos MongoDB
-        await Product.create(data);
-
-        // Emitir los productos actualizados al cliente
-        Product.find({}, (err, updatedProducts) => {
-        if (err) {
-            console.error("Error fetching updated products:", err);
-        } else {
-            socket.emit("products", updatedProducts);
+        try {
+        console.log(data);
+        await products.createProduct(data);
+        const updatedProducts = products.readProducts();
+        console.log("Updated products:", updatedProducts);
+        socket.emit("products", updatedProducts);
+        } catch (error) {
+        console.log(error);
         }
-        });
-    } catch (error) {
-        console.error("Error creating product:", error);
-    }
-    })
+    });
 });
-
