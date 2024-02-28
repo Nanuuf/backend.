@@ -12,12 +12,11 @@ class UsersManager {
         this.users = JSON.parse(fs.readFileSync(this.path, "utf-8"));
       }
     } catch (error) {
-      return error.message;
+      throw new Error(error.message);
     }
   }
   constructor(path) {
     this.path = path;
-    this.users = [];
     this.init();
   }
   async create(data) {

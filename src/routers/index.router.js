@@ -1,26 +1,12 @@
 import { Router } from "express";
-import apiRouter from "./api/index.router.js";
-import viewsRouter from "./views/index.view.js";
+import productsRouter from "./products.router.js";
+import usersRouter from "./users.router.js";
+import ordersRouter from "./orders.router.js";
 
-const router = Router();
+const apiRouter = Router();
 
-router.use("/api", apiRouter);
-router.use("/", viewsRouter);
+apiRouter.use("/users", usersRouter);
+apiRouter.use("/products", productsRouter);
+apiRouter.use("/orders", ordersRouter);
 
-router.get("/", (req, res) => {
-    res.render("home");
-    });
-
-    router.get("/real", (req, res) => {
-    res.render("real");
-    });
-
-    router.get("/form", (req, res) => {
-    res.render("form");
-    });
-
-    router.get("/register", (req, res) => {
-    res.render("register");
-});
-
-export default router;
+export default apiRouter;
