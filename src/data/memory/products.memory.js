@@ -1,50 +1,93 @@
-import Product from "../../data/mongo/models/product.model.js"; // Importa el modelo de producto de Mongoose
+import fs from "fs";
+import crypto from "crypto";
+
 
 class ProductsManager {
-  // No es necesario el método init() para cargar productos de MongoDB
-
-  // Método para crear un nuevo producto
-  async create(data) {
+  #products = [];
+  init() {
     try {
-      // Crea un nuevo documento de producto en la base de datos
-      const product = await Product.create(data);
-      return product.id; // O cualquier otro identificador único que utilices
-    } catch (error) {
-      return error.message;
-    }
-  }
-
-  // Método para leer productos con filtro
-  async readProducts(filter) {
-    try {
-      // Busca documentos de productos en la base de datos que cumplan con el filtro
-      const filteredProducts = await Product.find(filter);
-      if (filteredProducts.length === 0) {
-        throw new Error("No se encontraron productos");
+      const exists = fs.existsSync(this.path);
+      if (!exists) {
+        const data = JSON.stringify([], null, 2);
+        fs.writeFileSync(this.path, data);
+      } else {
+        this.#products = JSON.parse(fs.readFileSync(this.path, "utf-8"));
       }
-      return filteredProducts;
     } catch (error) {
       return error.message;
     }
   }
 
-  // Método para leer un producto por su ID
-  async readOne(id) {
+  constructor(path) {
+    this.path = path;
+    this.#products = [];
+    this.init();
+  }
+
+  update(id, newData) {
     try {
-      // Busca un documento de producto en la base de datos por su ID
-      const one = await Product.findById(id);
-      if (!one) {
-        throw new Error(`No se encontró ningún producto con el id ${id}`);
+      const index = this.#products.findIndex((product) => product.id === id);
+
+      if (index === -1) {
+        throw new Error("Product not found");
       }
-      return one;
+
+      const updatedProduct = { ...this.#products[index], ...newData };
+      this.#products[index] = updatedProduct;
+
+      return updatedProduct;
     } catch (error) {
       return error.message;
     }
   }
 
-  // Los métodos update() y remove() pueden ajustarse para actualizar y eliminar productos en la base de datos, según tus necesidades específicas
+  create(data) {
+    try {
+      if (!data.title || !data.photo || !data.price || !data.stock) {
+        throw new Error("Please, insert title, photo, price, stock");
+      }
+      const product = {
+        id:
+          this.#products.length === 0
+            ? 1
+            : this.#products[this.#products.length - 1].id + 1,
+        title: data.title,
+        photo: data.photo,
+        price: data.price,
+        stock: data.stock,
+      };
+      this.#products.push(product);
+      return product.id;
+    } catch (error) {
+      return error.message;
+    }
+  }
+
+  readProducts() {
+    try {
+      if (this.#products.length === 0) {
+        throw new Error("Not found products!");
+      } else {
+        return this.#products;
+      }
+    } catch (error) {
+      return error.message;
+    }
+  }
+
+  readOne(id) {
+    try {
+      let one = this.#products.find((each) => each.id === Number(id));
+      if (one) {
+        return one;
+      } else {
+        throw new Error("Not found product with id=" + id);
+      }
+    } catch (error) {
+      return error.message;
+    }
+  }
 }
 
-// Exporta una instancia de ProductsManager
-const products = new ProductsManager();
+const products = new ProductsManager("./src/data/memory/products.json");
 export default products;

@@ -1,18 +1,17 @@
-document.addEventListener("DOMContentLoaded", async () => {
-        try {
-        const response = await fetch("/api/products");
-        if (!response.ok) {
-            throw new Error("Error al obtener los productos");
-        }
-        const products = await response.json();
+const socket = io();
+
+document.addEventListener("DOMContentLoaded", () => {
+    socket.on("products", (updatedProducts) => {
+        renderProducts(updatedProducts);
+        });
     
-        // Imprimir los productos recibidos en la consola
-        console.log("Productos recibidos:", products);
-    
-        renderProducts(products);
-        } catch (error) {
-        console.error(error);
-        }
+        // Agregar un manejador de eventos a los botones "ADD TO CART"
+        document.querySelectorAll('.btn-add-to-cart').forEach(button => {
+        button.addEventListener('click', () => {
+            const productId = button.dataset.pid; 
+            addToCart(productId);
+        });
+        });
     });
     
     function renderProducts(products) {
@@ -27,33 +26,30 @@ document.addEventListener("DOMContentLoaded", async () => {
             <img src="${product.photo}" alt="${product.title}">
             <p>Precio: $${product.price}</p>
             <p>Stock: ${product.stock}</p>
+            <button class="btn btn-add-to-cart" data-pid="${product.pid}">ADD TO CART</button> 
         `;
         productsContainer.appendChild(productElement);
         });
     }
     
-    function searchProducts() {
-        const searchTerm = document
-        .getElementById("searchInput")
-        .value.trim()
-        .toLowerCase();
-    
-        const allProducts = document.querySelectorAll(".card");
-    
-        allProducts.forEach((product) => {
-        const title = product
-            .querySelector(".card-title")
-            .innerText.trim()
-            .toLowerCase();
-        const description = product
-            .querySelector(".card-text")
-            .innerText.trim()
-            .toLowerCase();
-    
-        if (title.includes(searchTerm) || description.includes(searchTerm)) {
-            product.style.display = "block";
-        } else {
-            product.style.display = "none";
-        }
+    async function addToCart(productId) {
+        try {
+        const response = await fetch('/api/cart/add-to-cart', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId })
         });
+    
+        if (response.ok) {
+            alert('¡Producto agregado existosamente!');
+        } else {
+            const errorMessage = await response.json();
+            alert(errorMessage.message);
+        }
+        } catch (error) {
+        console.error('Error agregandp producto al carrito:', error);
+        alert('Un error ha ocurriod mientras se agrgegaba el producto');
+        }
 }

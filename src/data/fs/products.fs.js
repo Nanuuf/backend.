@@ -30,6 +30,8 @@ class ProductManager {
 
   async updateProduct(id, newData) {
     try {
+      console.log("Updating product with ID:", id);
+      console.log("New data:", newData);
       const index = this.#products.findIndex((product) => product.id === id);
 
       if (index === -1) {
